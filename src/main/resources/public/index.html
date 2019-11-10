@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>BikeWeather to WS - @revision</title>
+    <style>
+        html {
+            font-family: sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+
+    </style>
+    <script>
+
+        const page_url = new URL(window.location.href)
+        const host = page_url.host;
+        const ws_url = 'ws://' +host + '/ws'
+        console.log(page_url);
+        console.log(host);
+        console.log(ws_url);
+
+        const ws = new WebSocket(ws_url);
+        ws.onopen = () => { document.getElementById('status').innerText = 'BikeWeather Data' };
+        ws.onmessage = (message) => {
+            console.log(message);
+            const data = JSON.parse(message.data);
+            const template = document.getElementById('row-template');
+            const row = document.importNode(template.content, true);
+            for (const element of row.children) {
+                for (const key in data) {
+                    element.innerHTML = element.innerHTML.replace(new RegExp('{{' + key + '}}'), data[key]);
+                }
+            }
+            document.getElementById('rows').appendChild(row);
+        };
+        ws.onerror = (error) => { document.getElementById('status').innerText = 'Query error' };
+
+    </script>
+</head>
+<body>
+<p id="status">Getting BikeWeather Data</p>
+<table id="rows">
+    <tr>
+        <th>Bike</th>
+        <th>From Station</th>
+        <th>Start</th>
+        <th>Actual Duration</th>
+        <th>Predicted Duration</th>
+        <th>Precipitation</th>
+        <th>Temperature</th>
+    </tr>
+    <template id="row-template">
+        <tr>
+            <td>{{bike_id}}</td>
+            <td>{{start_station_id}}</td>
+            <td>{{ts}}</td>
+            <td>{{duration}}</td>
+            <td>{{prediction}}</td>
+            <td>{{prcp}}</td>
+            <td>{{temp}}</td>
+        </tr>
+    </template>
+</table>
+</body>
+</html>
